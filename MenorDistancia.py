@@ -3,47 +3,52 @@ import time
 import os
 import random
 import threading as th
-
-# O 1 é o Robô
-# O @ é a Saída
+#o 1 é o Robô
+#O @ é a Saída
 
 TemMapa = False
 
-# INSIRA A COORDENADA DO PLAYER
-# x: 0 Y: 0 É O CANTO SUPERIOR ESQUERDO
+#INSIRA A COORDENADA DO PLAYER
+#x: 0 Y: 0 É O CANTO SUPERIOR ESQUERDO
 posicaoXInicio = 0
 posicaoYInicio = 0
+
 
 posicaoXMapa = 1
 posicaoYMapa = 1
 
-Mapa = [
-    ["1", ".", ".", ".", ".", ".", ".", "@"],
-    [".", ".", ".", ".", ".", ".", ".", "."],
-    [".", ".", ".", ".", ".", ".", ".", "@"],
-    [".", ".", ".", ".", ".", ".", ".", "."],
-    [".", ".", ".", ".", ".", ".", ".", "@"],
-    [".", ".", ".", ".", ".", ".", ".", "."],
-    [".", ".", ".", ".", ".", ".", ".", "."],
-    [".", ".", ".", ".", ".", ".", ".", "."]
-]
+#Posicao Real time
 
-# Insira a coordenada da saída
-posicaoXFinal = 7
-posicaoYFinal = 7
 
-posicaoXArmadilha = 0
-posicaoYArmadilha = 0
+Mapa =[ ["1",".",".",".",".","@"],
+        [".",".",".",".",".","."],
+        [".",".",".",".",".","@"],
+        [".",".",".",".",".","."],
+        [".",".",".",".",".","@"],
+        [".",".",".",".",".","."]]
+
+#Insira a coodenada da saída
+#5 5 É O CANTO INFERIOR DIREITO
+posicaoXFinal =  0
+posicaoYFinal =  0
+
+posicaoXArmadilha =  0
+posicaoYArmadilha =  0
+
+
+
+
 
 Historico = []
+import random
 
 def criar_mapa():
-    global posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha, posicaoXMapa, posicaoYMapa
+    global posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha,posicaoXMapa,posicaoYMapa
     
     DefinirBau = {
-        "1": (7, 0), 
-        "2": (7, 2),  
-        "3": (7, 4)
+        "1": (5, 0), 
+        "2": (5, 2), 
+        "3": (5, 4)
     }
     
     objetos = ["Tesouro", "Armadilha", "Nada"]
@@ -63,7 +68,7 @@ def criar_mapa():
     pedras = 0
     for i in range(len(Mapa) - 1):
         for j in range(len(Mapa[i]) - 1): 
-            if pedras == 3:  # Limitar a 3 pedras
+            if pedras >= 3:  # Limitar a 3 pedras
                 break
             
             if random.choice([1, 0]) == 1:  # Aleatoriamente decide se adiciona uma pedra
@@ -73,35 +78,34 @@ def criar_mapa():
                 # Coordenadas do playerSpawn e baús
                 posicoes_proibidas = {
                     (0, 0), (0, 1), (1, 0), (1, 1),  # playerSpawn
-                    (6, 0), (6, 1), (7, 0), (7, 1),  # bau1
-                    (6, 2), (6, 3), (7, 2), (7, 4),  # bau2
-                    (6, 4), (6, 5), (7, 4), (7, 5)   # bau3
+                    (4, 0), (4, 1), (5, 0), (5, 1),  # bau1
+                    (4, 2), (4, 3), (5, 2), (5, 4),  # bau2
+                    (4, 4), (4, 5), (5, 4), (5, 5)   # bau3
                 }
-                for pedra in pedrapos.values():
-                    for k in range(0, len(pedra), 2):
-                        posicoes_proibidas.add((pedra[k], pedra[k + 1]))
                 
                 # Verificar se o bloco não está em cima das posições predefinidas
-                if not any((valores[k], valores[k + 1]) in posicoes_proibidas for k in range(0, len(valores), 2)):
-                        pedrapos[chave] = valores
-                        pedras += 1
+                if not any((valores[k], valores[k+1]) in posicoes_proibidas for k in range(0, len(valores), 2)):
+                    pedrapos[chave] = valores
+                    pedras += 1 
 
     # Atualiza o mapa com as pedras
     for valores in pedrapos.values():
+
         for k in range(0, len(valores), 2):
             x, y = valores[k], valores[k + 1]
             if 0 <= y < len(Mapa) and 0 <= x < len(Mapa[0]):
                 Mapa[y][x] = "█"  # Adiciona a pedra ao mapa
     
     #adicionar mapa
+
     mapa_adicionado = False
     while not mapa_adicionado:
         posicaoXMapa = random.randint(0, len(Mapa) - 1)
         posicaoYMapa = random.randint(0, len(Mapa[0]) - 1)
         
         # Verifica se a posição está livre
-        if Mapa[posicaoYMapa][posicaoXMapa] == ".":
-            Mapa[posicaoYMapa][posicaoXMapa] = "8" 
+        if Mapa[posicaoYMapa][ posicaoXMapa] == ".":
+            Mapa[posicaoYMapa][ posicaoXMapa] = "8" 
             mapa_adicionado = True  
 
     #adicionar monstro
@@ -117,37 +121,44 @@ def criar_mapa():
             monstros += 1
         if monstros == 3:
             monstro_adicionado = True  # Marca que o mapa foi adicionado
+                
 
+
+
+                        
+                        
+
+                
 
 criar_mapa()
 
 def adicionarPlayer():
-
-
-    bau1X = 7  
+    bau1X = 5
     bau1Y = 0
 
-    bau2X = 7  
     bau2Y = 2
+    bau2X = 5
 
-    bau3X = 7 
     bau3Y = 4
+    bau3X = 5
+
     posicaoX = posicaoXInicio
     posicaoY = posicaoYInicio
 
-    Mapa[posicaoY][posicaoX] = 1
-    Mapa[bau1Y][bau1X] = "@"
-    Mapa[bau2Y][bau2X] = "@"
-    Mapa[bau3Y][bau3X] = "@"
+    Mapa[posicaoY][posicaoX]= 1
+    Mapa[bau1Y ][bau1X]= "@"
+    Mapa[bau2Y][bau2X]= "@"
+    Mapa[bau3Y][bau3X]= "@"
 
     if TemMapa == False:
-        Mapa[posicaoYMapa][posicaoXMapa] = "8"
+        Mapa[posicaoYMapa][posicaoXMapa]= "8"
+    
+
 
     return posicaoX, posicaoY
 
 
 posicaoX, posicaoY = adicionarPlayer()
-
 
 
 '''
@@ -231,10 +242,6 @@ def andar(direcao, posicaoX, posicaoY):
                         Morreu = True
 
                         return posicaoX, posicaoY, False,TemMapa
-                    elif Mapa[novoY][novoX] == "@":
-                        Mapa[posicaoY][posicaoX] = Caminho
-                        posicaoX, posicaoY = novoX, novoY
-                        Mapa[posicaoY][posicaoX] = 1
                         
                     if Mapa[novoY][novoX] == "8":
                         TemMapa = True
@@ -376,7 +383,6 @@ def pathfinding():
         if MENOR is not None and NODE[2] == MENOR[2]:
             MENOR = NODE
             direcaoNUM = i + 1
-
         if MENOR is None or NODE[2] < MENOR[2]:
             MENOR = NODE
             direcaoNUM = i + 1
@@ -451,7 +457,6 @@ if update == False:
          print("VOCÊ MORREU!")
     else:
         print("Tempo: ", tempo)
-        print("Caminho usado:")
-        print(Historico)
+        print("Você Achou o Tesouro!")
 
 

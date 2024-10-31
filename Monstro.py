@@ -212,18 +212,38 @@ def andar(direcao, posicaoX, posicaoY):
         posicaoX, posicaoY = adicionarPlayer()
 
     else:
-        if TemMapa == False:
-            movimentos = {
-                "D": (1, 0, "."), 
-                "A": (-1, 0, "."), 
-                "S": (0, 1, "."), 
-                "W": (0, -1, ".")}
-        else:
-            movimentos = {
+        movimentos = {
             "D": (1, 0, ">"), 
             "A": (-1, 0, "<"), 
             "S": (0, 1, "V"), 
             "W": (0, -1, "^")}
+
+        NODE1 = [posicaoX - 1, posicaoY - 1,0,1]
+        NODE2 = [posicaoX    , posicaoY - 1,0,None]
+        NODE3 = [posicaoX + 1, posicaoY - 1,0,1]
+
+        
+        NODE4 = [posicaoX - 1, posicaoY,0,None]
+        NODE5 = [posicaoX + 1, posicaoY,0,None]
+
+        NODE6 = [posicaoX - 1, posicaoY + 1,0,6]
+        NODE7 = [posicaoX    , posicaoY + 1,0,None]
+        NODE8 = [posicaoX + 1, posicaoY + 1,0,6]
+
+        NODES = [NODE1,NODE2,NODE3,NODE4,NODE5,NODE6,NODE7,NODE8]
+
+        for i in range(len(Mapa) - 1):
+            for j in range(len(Mapa[i]) - 1):
+                for i, NODE in enumerate(NODES):
+                    try:
+                        if any((Caminho) in Mapa[NODE[1]][NODE[0]] for Caminho in [">", "V", "^", "<"]):
+                            Mapa[NODE[1]][NODE[0]] = "."
+                    except IndexError:
+                        pass
+
+
+
+
 
             
 
@@ -284,153 +304,125 @@ def Aleatorio():
     return direcao[direcaoNUM]
 
 # path finding de verdade
+
 def pathfinding():
     global posicaoX, posicaoY, posicaoXFinal, posicaoYFinal, posicaoXMapa, posicaoYMapa, Mapa
     
-    # Distância do node Principal para o final
-    print("Mapa:", posicaoXMapa, "y:", posicaoYMapa)
-    if TemMapa == True:
-        print("Com Mapa")
-        hx = abs(posicaoXFinal - posicaoX)
-        hy = abs(posicaoYFinal - posicaoY)
-        h = hx + hy
-    else:
-        print("Sem Mapa")
-        hx = abs(posicaoXMapa - posicaoX)
-        hy = abs(posicaoYMapa - posicaoY)
-        h = hx + hy
+    def contar_monstros_ao_redor(x, y):
+        # Começa contagem em zero
+        count = 0
+        # Verifica as 8 posições ao redor
+        # Imagine que você está em uma posição do mapa (X):
+        # [ ][ ][ ]
+        # [ ][X][ ]
+        # [ ][ ][ ]
     
-    '''
-    Esse algoritmo usa como base o A* porém não com todas as funcionalidades
-    pois não temos o valor de G.
-    
-    O valor que usamos é a soma da distância do node vizinho com o player até o final do labirinto.
-    e.g:
+        # dx e dy são deslocamentos para verificar todas as 8 casas ao redor
+        # dx = -1 (esquerda), 0 (centro), 1 (direita)
+        # dy = -1 (cima), 0 (centro), 1 (baixo)
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                # Se dx=0 e dy=0, seria a própria posição, então pulamos
+                if dx == 0 and dy == 0:
+                    continue
+                # Calcula nova posição para verificar
+                novo_x = x + dx # Posição atual + deslocamento
+                novo_y = y + dy # Posição atual + deslocamento
+                # Verifica se a nova posição está dentro do mapa
+                if 0 <= novo_x < len(Mapa[0]) and 0 <= novo_y < len(Mapa):
+                    # Se encontrar um monstro "M", aumenta a contagem
+                    if Mapa[novo_y][novo_x] == "M":
+                        count += 1
+        # Retorna total de monstros encontrados
+        return count
+        # Exemplo visual de como funciona:
+        # Posição atual: X
+        # Números: ordem que verifica
+        # [1][2][3]
+        # [4][X][5]
+        # [6][7][8]
 
-    DISTANCIA = DISTANCIA_ATÉ_FINAL + NODE_DISTANCIA_ATÉ_FINAL
+    # Define os nós possíveis (mesma estrutura anterior)
+    NODE1 = [posicaoX - 1, posicaoY - 1, 0, 1]
+    NODE2 = [posicaoX    , posicaoY - 1, 0, None]
+    NODE3 = [posicaoX + 1, posicaoY - 1, 0, 1]
+    NODE4 = [posicaoX - 1, posicaoY    , 0, None]
+    NODE5 = [posicaoX + 1, posicaoY    , 0, None]
+    NODE6 = [posicaoX - 1, posicaoY + 1, 0, 6]
+    NODE7 = [posicaoX    , posicaoY + 1, 0, None]
+    NODE8 = [posicaoX + 1, posicaoY + 1, 0, 6]
 
-    O código então, escolhe o node com menor F pois a distância até o final teoricamente iria levar até o final do labirinto pela menor distância possível.
-    
-    Algumas regras extras foram adicionadas para melhorar como o algoritmo funciona:
-            
-            °- Paredes ou borda do mapa ou qualquer coisa que não seja "." setam o F = 99999999 assim o código considera esse NODE um obstáculo.
+    NODES = [NODE1, NODE2, NODE3, NODE4, NODE5, NODE6, NODE7, NODE8]
 
-            °- O caminho passado pelo player, no caso o rastro "0", é considerado 9999999 assim evitando que o algoritmo considere um lugar que ele já passou
-            
-            °- Se o Player ficar preso, o código retorna o "NÃO ACHEI" como direção, o que irá reiniciar o código e colocar um X na posição que ele travou, de modo que ele vai lentamente desconsiderar locais sem saída.
-
-               e.g:
-                    Mapa:
-                        ['0' 'X' 'X' '█' 'X' 'X']
-                        ['0' '0' 'X' 'X' 'X' 'X']
-                        ['█' '0' '█' '█' '█' 'X']
-                        ['X' '0' '█' '@' '█' 'X']
-                        ['█' '0' '█' '1' '█' 'X']
-                        ['.' '0' '0' '0' '█' 'X']
-
-            °- Como não podemos andar na diagonal, temos que verificar se o Node PAI é atravessavel, assim podemos ir para o Node FILHO
-                
-                MAPA DE NODES:
-                    FILHO    PAI   FILHO
-                    [NODE1][NODE2][NODE3]
-                PAI [NODE4][     ][NODE5]PAI
-                    [NODE6][NODE7][NODE8]
-                    FILHO    PAI   FILHO
-
-    '''
-
-    # Adicionamos as coordenadas dos nodes ortogonais:
-    NODE1 = [posicaoX - 1, posicaoY - 1,0,1]
-    NODE2 = [posicaoX    , posicaoY - 1,0,None]
-    NODE3 = [posicaoX + 1, posicaoY - 1,0,1]
-
-    
-    NODE4 = [posicaoX - 1, posicaoY,0,None]
-    NODE5 = [posicaoX + 1, posicaoY,0,None]
-
-    NODE6 = [posicaoX - 1, posicaoY + 1,0,6]
-    NODE7 = [posicaoX    , posicaoY + 1,0,None]
-    NODE8 = [posicaoX + 1, posicaoY + 1,0,6]
-
-    NODES = [NODE1,NODE2,NODE3,NODE4,NODE5,NODE6,NODE7,NODE8]
-
-    # Agora descobrimos o valor de f para cada node vizinho do player
+    # Calcula o peso de cada nó baseado na distância e quantidade de monstros
     for i, NODE in enumerate(NODES):
         try:
             if 0 <= NODE[1] < len(Mapa) and 0 <= NODE[0] < len(Mapa[0]):
-                if Mapa[NODE[1]][NODE[0]] == "." or Mapa[NODE[1]][NODE[0]] == "@" or Mapa[NODE[1]][NODE[0]] == "8":  # Caminho livre
-
-
-                    if TemMapa == True:
+                if Mapa[NODE[1]][NODE[0]] == "." or Mapa[NODE[1]][NODE[0]] == "@" or Mapa[NODE[1]][NODE[0]] == "8":
+                    # Calcula distância até o objetivo
+                    if TemMapa:
                         NODEhx = abs(posicaoXFinal - NODE[0])
                         NODEhy = abs(posicaoYFinal - NODE[1])
-                        NODEh = NODEhx + NODEhy
                     else:
                         NODEhx = abs(posicaoXMapa - NODE[0])
                         NODEhy = abs(posicaoYMapa - NODE[1])
-                        NODEh = NODEhx + NODEhy
-
-                    distancia = h + NODEh
-                    NODE[2] = distancia
-                elif posicaoXArmadilha == NODE[0] and posicaoXArmadilha == NODE[1]:
-                    NODE[2] = 999999999999  # Obstáculo
-                else: 
-                    NODE[2] = 999999999999  # Obstáculo
-            else:  
-                NODE[2] = 999999999999  # Fora dos limites do mapa
-        
-        except IndexError:  # Caso seja fora dos limites do mapa
+                    
+                    # Conta monstros ao redor do nó
+                    monstros = contar_monstros_ao_redor(NODE[0], NODE[1])
+                    
+                    # Peso final = distância + (peso_por_monstro * número_de_monstros)
+                    peso_por_monstro = 2  # Ajuste este valor para dar mais ou menos importância aos monstros
+                    NODE[2] = NODEhx + NODEhy + (monstros * peso_por_monstro)
+                    
+                else:
+                    NODE[2] = 999999999999
+            else:
+                NODE[2] = 999999999999
+        except IndexError:
             NODE[2] = 999999999999
 
         print("Node ", i + 1, " :", NODE)
-    
-    # Encontrar o node com menor valor de f
-    MENOR = None
-    for i, NODE in enumerate(NODES):
 
-        #VERIFICA SE O NODE PAI É ATRAVESSAVEL SE NÃO, O NODE FILHO NÃO É ATRAVESSAVEL TAMBÉM
+    # Encontra o nó com menor peso (considerando monstros e distância)
+    MENOR = None
+    direcaoNUM = None
+    
+    for i, NODE in enumerate(NODES):
+        # Verifica se o nó pai é atravessável
         if NODE[3] is not None:
             node_pai = NODES[NODE[3]]
             if node_pai[2] == 999999999999:
                 NODE[2] = 999999999999
 
-
-        
-        #acha o menor F
-        if MENOR is not None and NODE[2] == MENOR[2]:
-            MENOR = NODE
-            direcaoNUM = i + 1
+        # Escolhe o nó com menor peso
         if MENOR is None or NODE[2] < MENOR[2]:
             MENOR = NODE
             direcaoNUM = i + 1
-        
-        #se todos os nodes não são atravessaveis retorne None
-        if all(node[2] == 999999999999 for node in NODES):
-            direcaoNUM = None
 
+    # Se todos os nós são inacessíveis
+    if all(node[2] == 999999999999 for node in NODES):
+        direcaoNUM = None
 
+    # Define as direções possíveis
     direcao = {
-        # Travei!
-        0: "NaoAchei",  
-        None : "NaoAchei"
+        0: "NaoAchei",
+        None: "NaoAchei",
+        1: "W,A",
+        2: "W",
+        3: "W,D",
+        4: "A",
+        5: "D",
+        6: "S,A",
+        7: "S",
+        8: "S,D"
     }
 
     print("Node menor:", MENOR)
-    direcao[1] = "W"
-    direcao[2] = "W"
-    direcao[3] = "W"
-    direcao[4] = "A"
-    direcao[5] = "D"
-    direcao[6] = "S"
-    direcao[7] = "S"
-    direcao[8] = "S"
-
-    # Caso DirecaoNum retornar vazio (significando que não existe nenhum caminho naquele node a gente retorna o "Nao achei")
+    
     try:
         return direcao[direcaoNUM]
-    except UnboundLocalError:        
+    except UnboundLocalError:
         return direcao[0]
-
 
 def jogar():
     
@@ -443,10 +435,10 @@ def jogar():
         
         print("Mapa:")
         print(np.matrix(Mapa))  
-        if TemMapa == True:
-            direcao = pathfinding()
-        else:
-            direcao = Aleatorio()
+        direcao = pathfinding()
+
+
+
         
         
         print("X:", posicaoX)
@@ -465,6 +457,9 @@ def jogar():
 
         tempo += 0.1
         Historico.append(direcao)
+        if direcao == "NaoAchei":
+            print("Prendi, usar Força bruta")
+            direcao = Aleatorio()
         posicaoX, posicaoY, update,TemMapa = andar(direcao, posicaoX, posicaoY)  
         
         
@@ -480,6 +475,6 @@ if update == False:
          print("VOCÊ MORREU!")
     else:
         print("Tempo: ", tempo)
-        print("Caminho usado:")
+        print("Você Achou o Tesouro!")
 
 
