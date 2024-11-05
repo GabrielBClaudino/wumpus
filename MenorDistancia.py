@@ -32,7 +32,6 @@ Mapa =[
 
 #Insira a coodenada da saída
 #5 5 É O CANTO INFERIOR DIREITO
-# Insira a coordenada da saída
 posicaoXFinal = 7
 posicaoYFinal = 7
 
