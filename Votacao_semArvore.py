@@ -393,6 +393,8 @@ def votacao():
     monstro1 = monstro().upper()
     votos.append(monstro1)
 
+
+
     w = votos.count("W")
     a = votos.count("A")
     s = votos.count("S")
@@ -430,13 +432,12 @@ def jogar():
         print("Mapa:")
         print(np.matrix(Mapa))  
 
-        inicio = (posicaoX, posicaoY)
-        fim = (posicaoXFinal, posicaoYFinal)
+
 
         
         
         
-        direcao = monstro()
+        direcao = votacao()
         if direcao == "NaoAchei":
             Travou = True
             

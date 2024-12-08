@@ -383,6 +383,9 @@ MAX_TEMPO_TRAVADO = 5  # Limite de iterações para considerar "travado"
 direcao_anterior = None  # Direção anterior do jogador
 
 def votacao():
+    global posicaoXFinal, posicaoYFinal, posicaoX, posicaoY
+    inicio = (posicaoX, posicaoY)
+    fim = (posicaoXFinal, posicaoYFinal)
     votos = []
     menorD = pathfinding().upper()
     votos.append(menorD)
@@ -392,6 +395,10 @@ def votacao():
 
     monstro1 = monstro().upper()
     votos.append(monstro1)
+    arvore = navegar_grafo(inicio, fim)
+    votos.append(arvore[0])
+
+
 
     w = votos.count("W")
     a = votos.count("A")
@@ -430,13 +437,12 @@ def jogar():
         print("Mapa:")
         print(np.matrix(Mapa))  
 
-        inicio = (posicaoX, posicaoY)
-        fim = (posicaoXFinal, posicaoYFinal)
+
 
         
         
         
-        direcao = monstro()
+        direcao = votacao()
         if direcao == "NaoAchei":
             Travou = True
             

@@ -155,10 +155,10 @@ def andar(direcao, posicaoX, posicaoY):
         Travou = True
     else:
         movimentos = {
-            "D": (1, 0, "."), 
-            "A": (-1, 0, "."), 
-            "S": (0, 1, "."), 
-            "W": (0, -1, ".")}
+            "D": (1, 0, "→"), 
+            "A": (-1, 0, "←"), 
+            "S": (0, 1, "↓"), 
+            "W": (0, -1, "↑")}
 
         for mov in direcao.split(","):
             mov = mov.upper()
@@ -198,7 +198,10 @@ def andar(direcao, posicaoX, posicaoY):
                         Mapa[posicaoY][posicaoX] = Caminho
                         posicaoX, posicaoY = novoX, novoY
                         Mapa[posicaoY][posicaoX] = 1
-
+            os.system('cls' if os.name == 'nt' else 'clear')  
+            print("Mapa:")
+            print(np.matrix(Mapa))
+            print("Direcao: ", direcao)  
             
 
     return posicaoX, posicaoY, True, TemMapa
@@ -425,10 +428,7 @@ def jogar():
         
 
         
-        os.system('cls' if os.name == 'nt' else 'clear')  
-        
-        print("Mapa:")
-        print(np.matrix(Mapa))  
+
 
         inicio = (posicaoX, posicaoY)
         fim = (posicaoXFinal, posicaoYFinal)
@@ -436,21 +436,16 @@ def jogar():
         
         
         
-        direcao = monstro()
-        if direcao == "NaoAchei":
-            Travou = True
+        direcao = navegar_grafo(inicio, fim)
+
             
         
         
-        print("X:", posicaoX)
-        print("Y:", posicaoY)    
-        print("Direcao: ", direcao)
-        
 
 
 
         
-        
+        time.sleep(0.1)
         tempo += 0.1
 
         if direcao == "Caminho não encontrado":
@@ -476,7 +471,7 @@ def jogar():
             update = False         
         
         direcao_anterior = direcao  # Atualiza a direção anterior
-        passos += 1  # Incrementa o contador de passos
+        passos += len(direcao.split(",")) # Incrementa o contador de passos
     
     mortes_resultados.append(Morreu)
     vitorias_resultados.append(Ganhou)

@@ -436,7 +436,7 @@ def jogar():
         
         
         
-        direcao = monstro()
+        direcao = aleatorio()
         if direcao == "NaoAchei":
             Travou = True
             

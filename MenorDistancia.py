@@ -2,53 +2,56 @@ import numpy as np
 import time 
 import os
 import random
-import threading as th
-#o 1 é o Robô
-#O @ é a Saída
 
-TemMapa = False
+# O 1 é o Robô
+# O @ é a Saída
 
-#INSIRA A COORDENADA DO PLAYER
-#x: 0 Y: 0 É O CANTO SUPERIOR ESQUERDO
+# Variáveis globais
+
 posicaoXInicio = 0
 posicaoYInicio = 0
-
-
 posicaoXMapa = 1
 posicaoYMapa = 1
 
-#Posicao Real time
+# Mapa inicial
+Mapa = [
+    ["1", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "."]
+]
 
-
-Mapa =[ ["1",".",".",".",".","@"],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","@"],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","@"],
-        [".",".",".",".",".","."]]
-
-#Insira a coodenada da saída
-#5 5 É O CANTO INFERIOR DIREITO
-posicaoXFinal =  0
-posicaoYFinal =  0
-
-posicaoXArmadilha =  0
-posicaoYArmadilha =  0
-
-
-
-
-
+# Coordenadas da saída
+posicaoXFinal = 7
+posicaoYFinal = 7
+posicaoXArmadilha = 0
+posicaoYArmadilha = 0
 Historico = []
-import random
 
+# Variáveis globais
+TemMapa = True
+Morreu = False
+Ganhou = False
+Travou = False
+tempo = 0
+passos = 0
+
+mortes_resultados = []
+vitorias_resultados = []
+Travou_resultados = []
+
+# Função para criar o mapa
 def criar_mapa():
-    global posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha,posicaoXMapa,posicaoYMapa
+    global posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha, posicaoXMapa, posicaoYMapa
     
     DefinirBau = {
-        "1": (5, 0), 
-        "2": (5, 2), 
-        "3": (5, 4)
+        "1": (7, 0), 
+        "2": (7, 2),  
+        "3": (7, 4)
     }
     
     objetos = ["Tesouro", "Armadilha", "Nada"]
@@ -68,7 +71,7 @@ def criar_mapa():
     pedras = 0
     for i in range(len(Mapa) - 1):
         for j in range(len(Mapa[i]) - 1): 
-            if pedras >= 3:  # Limitar a 3 pedras
+            if pedras == 3:  # Limitar a 3 pedras
                 break
             
             if random.choice([1, 0]) == 1:  # Aleatoriamente decide se adiciona uma pedra
@@ -78,34 +81,35 @@ def criar_mapa():
                 # Coordenadas do playerSpawn e baús
                 posicoes_proibidas = {
                     (0, 0), (0, 1), (1, 0), (1, 1),  # playerSpawn
-                    (4, 0), (4, 1), (5, 0), (5, 1),  # bau1
-                    (4, 2), (4, 3), (5, 2), (5, 4),  # bau2
-                    (4, 4), (4, 5), (5, 4), (5, 5)   # bau3
+                    (6, 0), (6, 1), (7, 0), (7, 1),  # bau1
+                    (6, 2), (6, 3), (7, 2), (7, 4),  # bau2
+                    (6, 4), (6, 5), (7, 4), (7, 5)   # bau3
                 }
+                for pedra in pedrapos.values():
+                    for k in range(0, len(pedra), 2):
+                        posicoes_proibidas.add((pedra[k], pedra[k + 1]))
                 
                 # Verificar se o bloco não está em cima das posições predefinidas
-                if not any((valores[k], valores[k+1]) in posicoes_proibidas for k in range(0, len(valores), 2)):
-                    pedrapos[chave] = valores
-                    pedras += 1 
+                if not any((valores[k], valores[k + 1]) in posicoes_proibidas for k in range(0, len(valores), 2)):
+                        pedrapos[chave] = valores
+                        pedras += 1
 
     # Atualiza o mapa com as pedras
     for valores in pedrapos.values():
-
         for k in range(0, len(valores), 2):
             x, y = valores[k], valores[k + 1]
             if 0 <= y < len(Mapa) and 0 <= x < len(Mapa[0]):
                 Mapa[y][x] = "█"  # Adiciona a pedra ao mapa
     
     #adicionar mapa
-
-    mapa_adicionado = False
+    mapa_adicionado = True
     while not mapa_adicionado:
         posicaoXMapa = random.randint(0, len(Mapa) - 1)
         posicaoYMapa = random.randint(0, len(Mapa[0]) - 1)
         
         # Verifica se a posição está livre
-        if Mapa[posicaoYMapa][ posicaoXMapa] == ".":
-            Mapa[posicaoYMapa][ posicaoXMapa] = "8" 
+        if Mapa[posicaoYMapa][posicaoXMapa] == "1":
+            Mapa[posicaoYMapa][posicaoXMapa] = "8" 
             mapa_adicionado = True  
 
     #adicionar monstro
@@ -121,134 +125,65 @@ def criar_mapa():
             monstros += 1
         if monstros == 3:
             monstro_adicionado = True  # Marca que o mapa foi adicionado
-                
 
-
-
-                        
-                        
-
-                
-
-criar_mapa()
-
+# Função para adicionar o player ao mapa
 def adicionarPlayer():
-    bau1X = 5
+    bau1X = 7  
     bau1Y = 0
-
+    bau2X = 7  
     bau2Y = 2
-    bau2X = 5
-
+    bau3X = 7 
     bau3Y = 4
-    bau3X = 5
-
     posicaoX = posicaoXInicio
     posicaoY = posicaoYInicio
 
-    Mapa[posicaoY][posicaoX]= 1
-    Mapa[bau1Y ][bau1X]= "@"
-    Mapa[bau2Y][bau2X]= "@"
-    Mapa[bau3Y][bau3X]= "@"
+    Mapa[posicaoY][posicaoX] = 1
+    Mapa[bau1Y][bau1X] = "@"
+    Mapa[bau2Y][bau2X] = "@"
+    Mapa[bau3Y][bau3X] = "@"
 
-    if TemMapa == False:
-        Mapa[posicaoYMapa][posicaoXMapa]= "8"
-    
-
+    if not TemMapa:
+        Mapa[posicaoYMapa][posicaoXMapa] = "8"
 
     return posicaoX, posicaoY
 
 
-posicaoX, posicaoY = adicionarPlayer()
-
-
-'''
-Mapa =[ ["█","█","█","█","█","█"],
-        [".",".",".",".",".","█"],
-        ["█",".","█",".","█","█"],
-        [".",".","█",".",".","."],
-        ["█","█","█",".","█","."],
-        [".",".",".",".","█","."]]
-'''
-
-'''
-Mapa = [[".",".",".",".",".","."],
-        ["█","█","█","█","█","."],
-        [".",".",".",".",".","."],
-        [".","█",".","█","█","█"],
-        [".","█",".",".",".","█"],
-        [".","█",".","█",".","."]]
-        
-'''
-'''
-Mapa = [[".",".",".",".",".","."],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","."],
-        [".",".",".",".",".","."]]
-'''
-
-'''
-Mapa = [[".","█",".",".",".","."],
-        [".",".",".",".",".","."],
-        ["█","█",".",".","█","█"],
-        [".",".",".",".",".","."],
-        [".",".",".",".","█","."],
-        [".",".",".",".","█","."]]
-        
-'''
-
-
-
-
-tempo = 0
-passos = 0
-
-Morreu = False
-
 def andar(direcao, posicaoX, posicaoY):
-    global Morreu, TemMapa, posicaoXInicio, posicaoYInicio, posicaoXMapa, posicaoYMapa, posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha
+    global Morreu, update, TemMapa, posicaoXInicio, posicaoYInicio, posicaoXMapa, posicaoYMapa, posicaoXFinal, posicaoYFinal, posicaoXArmadilha, posicaoYArmadilha, Ganhou
 
     if direcao == "NaoAchei":
-        # Apaga o caminho feito pelo player
-        for y in range(len(Mapa)):
-            for x in range(len(Mapa[y])):
-                if Mapa[y][x] != "█" and Mapa[y][x] != "X" and Mapa[y][x] != "M":
-                    Mapa[y][x] = "."
-        
-        # Guarda o local onde o player travou e torna intransitável
-        Mapa[posicaoY][posicaoX] = "X"
-
-        # Limpa o histórico e reinicia o player
-        Historico.clear()
-        posicaoX, posicaoY = adicionarPlayer()
-
+        Travou = True
     else:
         movimentos = {
-            "D": (1, 0, ">"), 
-            "A": (-1, 0, "<"), 
-            "S": (0, 1, "V"), 
-            "W": (0, -1, "^")}
+            "D": (1, 0, "→"), 
+            "A": (-1, 0, "←"), 
+            "S": (0, 1, "↓"), 
+            "W": (0, -1, "↑")}
 
         for mov in direcao.split(","):
             mov = mov.upper()
             if mov in movimentos:
-                dx, dy,Caminho = movimentos[mov]
+                dx, dy, Caminho = movimentos[mov]
                 novoX, novoY = posicaoX + dx, posicaoY + dy
                 if 0 <= novoX < len(Mapa[0]) and 0 <= novoY < len(Mapa):
                     if Mapa[novoY][novoX] == "@" and novoX == posicaoXFinal and novoY == posicaoYFinal:
-                        return posicaoX, posicaoY, False,TemMapa
-                    elif  Mapa[novoY][novoX] == "@" and novoX == posicaoXArmadilha and novoY == posicaoYArmadilha:
+                        Ganhou = True
+                        update = False
+                        return posicaoX, posicaoY, False, TemMapa
+                    elif Mapa[novoY][novoX] == "@" and novoX == posicaoXArmadilha and novoY == posicaoYArmadilha:
                         Morreu = True
-
-                        return posicaoX, posicaoY, False,TemMapa
+                        update = False
+                        return posicaoX, posicaoY, False, TemMapa
+                    elif Mapa[novoY][novoX] == "@":
+                        Mapa[posicaoY][posicaoX] = Caminho
+                        posicaoX, posicaoY = novoX, novoY
+                        Mapa[posicaoY][posicaoX] = 1
                         
                     if Mapa[novoY][novoX] == "8":
                         TemMapa = True
                         Mapa[posicaoY][posicaoX] = "."
                         posicaoX, posicaoY = novoX, novoY
                         Mapa[posicaoY][posicaoX] = 1
-
 
                         posicaoXInicio = posicaoXMapa
                         posicaoYInicio = posicaoYMapa
@@ -264,87 +199,38 @@ def andar(direcao, posicaoX, posicaoY):
                         posicaoX, posicaoY = novoX, novoY
                         Mapa[posicaoY][posicaoX] = 1
 
+            
+
     return posicaoX, posicaoY, True, TemMapa
 
-# path finding de verdade
 def pathfinding():
     global posicaoX, posicaoY, posicaoXFinal, posicaoYFinal, posicaoXMapa, posicaoYMapa, Mapa
     
-    # Distância do node Principal para o final
-    print("Mapa:", posicaoXMapa, "y:", posicaoYMapa)
-    if TemMapa == True:
-        print("Com Mapa")
+    if TemMapa:
         hx = abs(posicaoXFinal - posicaoX)
         hy = abs(posicaoYFinal - posicaoY)
         h = hx + hy
     else:
-        print("Sem Mapa")
         hx = abs(posicaoXMapa - posicaoX)
         hy = abs(posicaoYMapa - posicaoY)
         h = hx + hy
-    
-    '''
-    Esse algoritmo usa como base o A* porém não com todas as funcionalidades
-    pois não temos o valor de G.
-    
-    O valor que usamos é a soma da distância do node vizinho com o player até o final do labirinto.
-    e.g:
 
-    DISTANCIA = DISTANCIA_ATÉ_FINAL + NODE_DISTANCIA_ATÉ_FINAL
+    NODE1 = [posicaoX - 1, posicaoY - 1, 0, 1]
+    NODE2 = [posicaoX, posicaoY - 1, 0, None]
+    NODE3 = [posicaoX + 1, posicaoY - 1, 0, 1]
+    NODE4 = [posicaoX - 1, posicaoY, 0, None]
+    NODE5 = [posicaoX + 1, posicaoY, 0, None]
+    NODE6 = [posicaoX - 1, posicaoY + 1, 0, 6]
+    NODE7 = [posicaoX, posicaoY + 1, 0, None]
+    NODE8 = [posicaoX + 1, posicaoY + 1, 0, 6]
 
-    O código então, escolhe o node com menor F pois a distância até o final teoricamente iria levar até o final do labirinto pela menor distância possível.
-    
-    Algumas regras extras foram adicionadas para melhorar como o algoritmo funciona:
-            
-            °- Paredes ou borda do mapa ou qualquer coisa que não seja "." setam o F = 99999999 assim o código considera esse NODE um obstáculo.
+    NODES = [NODE1, NODE2, NODE3, NODE4, NODE5, NODE6, NODE7, NODE8]
 
-            °- O caminho passado pelo player, no caso o rastro "0", é considerado 9999999 assim evitando que o algoritmo considere um lugar que ele já passou
-            
-            °- Se o Player ficar preso, o código retorna o "NÃO ACHEI" como direção, o que irá reiniciar o código e colocar um X na posição que ele travou, de modo que ele vai lentamente desconsiderar locais sem saída.
-
-               e.g:
-                    Mapa:
-                        ['0' 'X' 'X' '█' 'X' 'X']
-                        ['0' '0' 'X' 'X' 'X' 'X']
-                        ['█' '0' '█' '█' '█' 'X']
-                        ['X' '0' '█' '@' '█' 'X']
-                        ['█' '0' '█' '1' '█' 'X']
-                        ['.' '0' '0' '0' '█' 'X']
-
-            °- Como não podemos andar na diagonal, temos que verificar se o Node PAI é atravessavel, assim podemos ir para o Node FILHO
-                
-                MAPA DE NODES:
-                    FILHO    PAI   FILHO
-                    [NODE1][NODE2][NODE3]
-                PAI [NODE4][     ][NODE5]PAI
-                    [NODE6][NODE7][NODE8]
-                    FILHO    PAI   FILHO
-
-    '''
-
-    # Adicionamos as coordenadas dos nodes ortogonais:
-    NODE1 = [posicaoX - 1, posicaoY - 1,0,1]
-    NODE2 = [posicaoX    , posicaoY - 1,0,None]
-    NODE3 = [posicaoX + 1, posicaoY - 1,0,1]
-
-    
-    NODE4 = [posicaoX - 1, posicaoY,0,None]
-    NODE5 = [posicaoX + 1, posicaoY,0,None]
-
-    NODE6 = [posicaoX - 1, posicaoY + 1,0,6]
-    NODE7 = [posicaoX    , posicaoY + 1,0,None]
-    NODE8 = [posicaoX + 1, posicaoY + 1,0,6]
-
-    NODES = [NODE1,NODE2,NODE3,NODE4,NODE5,NODE6,NODE7,NODE8]
-
-    # Agora descobrimos o valor de f para cada node vizinho do player
     for i, NODE in enumerate(NODES):
         try:
             if 0 <= NODE[1] < len(Mapa) and 0 <= NODE[0] < len(Mapa[0]):
-                if Mapa[NODE[1]][NODE[0]] == "." or Mapa[NODE[1]][NODE[0]] == "@" or Mapa[NODE[1]][NODE[0]] == "8":  # Caminho livre
-
-
-                    if TemMapa == True:
+                if Mapa[NODE[1]][NODE[0]] in [".", "@", "8"]:
+                    if TemMapa:
                         NODEhx = abs(posicaoXFinal - NODE[0])
                         NODEhy = abs(posicaoYFinal - NODE[1])
                         NODEh = NODEhx + NODEhy
@@ -355,50 +241,39 @@ def pathfinding():
 
                     distancia = h + NODEh
                     NODE[2] = distancia
-                elif posicaoXArmadilha == NODE[0] and posicaoXArmadilha == NODE[1]:
+                elif posicaoXArmadilha == NODE[0] and posicaoYArmadilha == NODE[1]:
                     NODE[2] = 999999999999  # Obstáculo
-                else: 
+                else:
                     NODE[2] = 999999999999  # Obstáculo
-            else:  
+            else:
                 NODE[2] = 999999999999  # Fora dos limites do mapa
         
-        except IndexError:  # Caso seja fora dos limites do mapa
+        except IndexError:
             NODE[2] = 999999999999
 
-        print("Node ", i + 1, " :", NODE)
-    
-    # Encontrar o node com menor valor de f
     MENOR = None
     for i, NODE in enumerate(NODES):
-
-        #VERIFICA SE O NODE PAI É ATRAVESSAVEL SE NÃO, O NODE FILHO NÃO É ATRAVESSAVEL TAMBÉM
         if NODE[3] is not None:
             node_pai = NODES[NODE[3]]
             if node_pai[2] == 999999999999:
                 NODE[2] = 999999999999
 
-
-        
-        #acha o menor F
         if MENOR is not None and NODE[2] == MENOR[2]:
             MENOR = NODE
             direcaoNUM = i + 1
+
         if MENOR is None or NODE[2] < MENOR[2]:
             MENOR = NODE
             direcaoNUM = i + 1
         
-        #se todos os nodes não são atravessaveis retorne None
         if all(node[2] == 999999999999 for node in NODES):
             direcaoNUM = None
 
-
     direcao = {
-        # Travei!
-        0: "NaoAchei",  
-        None : "NaoAchei"
+        0 : "NaoAchei",  
+        None: "NaoAchei"
     }
 
-    print("Node menor:", MENOR)
     direcao[1] = "W"
     direcao[2] = "W"
     direcao[3] = "W"
@@ -408,55 +283,282 @@ def pathfinding():
     direcao[7] = "S"
     direcao[8] = "S"
 
-    # Caso DirecaoNum retornar vazio (significando que não existe nenhum caminho naquele node a gente retorna o "Nao achei")
     try:
         return direcao[direcaoNUM]
     except UnboundLocalError:        
         return direcao[0]
 
+def aleatorio():
+    direcao = {}
+    direcao[1] = "W"
+    direcao[2] = "W"
+    direcao[3] = "W"
+    direcao[4] = "A"
+    direcao[5] = "D"
+    direcao[6] = "S"
+    direcao[7] = "S"
+    direcao[8] = "S"
+
+    direcaoNUM = random.choice(range(1, 8))
+    return direcao[direcaoNUM]
+
+def monstro():
+    global posicaoX, posicaoY, posicaoXFinal, posicaoYFinal, posicaoXMapa, posicaoYMapa, Mapa
+
+    direcoes = {
+        "w": (0, -1),  # cima
+        "a": (-1, 0),  # esquerda
+        "s": (0, 1),   # baixo
+        "d": (1, 0),   # direita
+    }
+
+    opostos = {
+        "w": "s",
+        "s": "w",
+        "a": "d",
+        "d": "a",
+    }
+
+    for direcao, (dx, dy) in direcoes.items():
+        nx, ny = posicaoX + dx, posicaoY + dy
+        
+        if 0 <= ny < len(Mapa) and 0 <= nx < len(Mapa[0]):
+            if Mapa[ny][nx] == "M":
+                return opostos[direcao]
+
+    return aleatorio()  
+
+
+def navegar_grafo(inicio, fim):
+    global Mapa
+    """ cria uma arvore usando o mapa e
+    Navega no mapa usando DFS e retorna o caminho em formato WASD.
+    
+    :param inicio: Tupla (x, y) representando a posição inicial.
+    :param fim: Tupla (x, y) representando a posição final.
+    :return: String com a sequência de movimentos em WASD.
+    """
+    # Direções possíveis: (dx, dy, movimento)
+    direcoes = {
+        (0, -1): 'W',  # Cima
+        (0, 1): 'S',   # Baixo
+        (-1, 0): 'A',  # Esquerda
+        (1, 0): 'D'    # Direita
+    }
+    
+    # Estruturas para DFS
+    stack = [(inicio, [])]  # Pilha com tuplas (posição, caminho)
+    visitados = set()  # Conjunto de posições visitadas
+
+    while stack:
+        (x, y), caminho = stack.pop()
+        
+        # Se chegamos ao destino, retornamos o caminho
+        if (x, y) == fim:
+            return ','.join(caminho)
+
+        # Marca a posição como visitada
+        visitados.add((x, y))
+        
+        # Explora as direções
+        for (dx, dy), movimento in direcoes.items():
+            nx, ny = x + dx, y + dy
+            
+            # Verifica se a nova posição está dentro dos limites e é acessível
+            if (0 <= nx < len(Mapa[0]) and 
+                0 <= ny < len(Mapa) and 
+                Mapa[ny][nx] in [".", "@", "1"] and 
+                (nx, ny) not in visitados and 
+                (nx, ny) != (posicaoXArmadilha, posicaoYArmadilha)):  # Verifica se não é a posição da armadilha
+                
+                stack.append(((nx, ny), caminho + [movimento]))
+    return "Caminho não encontrado"  # Se não encontrar um caminho
+
+
+
+
+
+tempo_travado = 0  # Contador para o tempo travado
+MAX_TEMPO_TRAVADO = 5  # Limite de iterações para considerar "travado"
+direcao_anterior = None  # Direção anterior do jogador
+
+def votacao():
+    votos = []
+    menorD = pathfinding().upper()
+    votos.append(menorD)
+
+    aleatorio1 = aleatorio().upper()
+    votos.append(aleatorio1)
+
+    monstro1 = monstro().upper()
+    votos.append(monstro1)
+
+    w = votos.count("W")
+    a = votos.count("A")
+    s = votos.count("S")
+    d = votos.count("D")
+
+    variaveis = {"w": w, "a": a, "s": s, "d": d}
+    print("votos: ", variaveis)
+
+    maior_nome = max(variaveis, key=variaveis.get)
+    
+    return maior_nome
+
+tempo = 0
+resultados = []  # Lista para armazenar os resultados de cada thread
+tempo_todos = []
+passos_total = []
+
 
 
 def jogar():
-    
-    
-    global tempo, passos, update
+    global tempo, passos, update, posicaoX, posicaoY, direcao_anterior, tempo_travado, Travou, Morreu, Ganhou,raiz, posicaoXFinal, posicaoYFinal, TemMapa, posicaoXMapa, posicaoYMapa
+    posicaoX, posicaoY = adicionarPlayer()
+    movimentosanteriores = []
+    posicaoX = 0
+    posicaoY = 0
+
+
     update = True
-    global posicaoX, posicaoY
     while update:
+        
+
+        
         os.system('cls' if os.name == 'nt' else 'clear')  
         
         print("Mapa:")
         print(np.matrix(Mapa))  
+
+        inicio = (posicaoX, posicaoY)
+        fim = (posicaoXFinal, posicaoYFinal)
+
+        
+        
+        
         direcao = pathfinding()
+        if direcao == "NaoAchei":
+            Travou = True
+            
         
         
         print("X:", posicaoX)
         print("Y:", posicaoY)    
         print("Direcao: ", direcao)
-        print("Tempo: ", tempo, "Segundos")
-        print("Passos (teclas apertadas): ", passos)
-        
         
 
-        time.sleep(0.1)
 
+
+        
+        
         tempo += 0.1
-        Historico.append(direcao)
-        posicaoX, posicaoY, update,TemMapa = andar(direcao, posicaoX, posicaoY)  
-        
-        
-        passos += 1
 
+        if direcao == "Caminho não encontrado":
+            Travou = True
+        else:
+            posicaoX, posicaoY, update,TemMapa = andar(direcao, posicaoX, posicaoY)
+                # Verificando se a posição atual já foi registrada nos movimentos anteriores
+        posicaoxy = (posicaoX, posicaoY)
+        if posicaoxy not in movimentosanteriores:
+            movimentosanteriores.append(posicaoxy)
+            travado = 0  # Reseta o contador de travado, já que houve movimento
+        else:
+            travado += 1  # Incrementa o contador de travado
+
+        if travado == 100:
+            Travou = True  # Marca o jogo como travado
+            update = False  # Encerra o loop do jogo, já que o jogo travou
+        if Morreu:
+            update = False
+        if Ganhou:
+            update = False   
+        if Travou:
+            update = False         
+        
+        direcao_anterior = direcao  # Atualiza a direção anterior
+        passos += 1  # Incrementa o contador de passos
+    
+    mortes_resultados.append(Morreu)
+    vitorias_resultados.append(Ganhou)
+    Travou_resultados.append(Travou)
+    tempo_todos.append(tempo)
+    passos_total.append(passos)
 
 update = False
-if update == False:
+
+# Função para rodar uma execução do jogo
+def rodar_jogo():
+    global Mapa, raiz
+
+    Mapa = [
+    [".", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "@"],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "."],
+    [".", ".", ".", ".", ".", ".", ".", "."]
+    ]
     
+    criar_mapa()
     jogar()
+
+
+for i in range(100):
+    TemMapa = True
+    Ganhou = False
+    Travou = False
+    Morreu = False
+    tempo = 0
+    passos = 0
+
+    posicaoX = 0
+    posicaoY = 0
     
-    if Morreu == True:
-         print("VOCÊ MORREU!")
+    rodar_jogo()
+
+if update == False:
+    # Contagem de vitórias, mortes e travamentos
+    vitorias = vitorias_resultados.count(True)
+    mortes = mortes_resultados.count(True)
+    travou = Travou_resultados.count(True)
+
+    # Verdadeiras positivas (vitórias corretas), Falsos negativos (mortos ou travados)
+    vitórias_corretas = vitorias
+    falsos_negativos = mortes + travou  # Se o jogo travou ou morreu, consideramos que não houve vitória
+
+    # Falsos positivos - situações em que o jogo terminou, mas não houve vitória (se precisar considerar)
+    falsos_positivos = 0  # Não temos a definição de falsos positivos diretamente, então deixamos como 0.
+
+    # Cálculo de precisão (Precision) e revocação (Recall)
+    if vitórias_corretas + falsos_positivos > 0:
+        precision = vitórias_corretas / (vitórias_corretas + falsos_positivos)
     else:
-        print("Tempo: ", tempo)
-        print("Você Achou o Tesouro!")
+        precision = 0
 
+    if vitórias_corretas + falsos_negativos > 0:
+        recall = vitórias_corretas / (vitórias_corretas + falsos_negativos)
+    else:
+        recall = 0
 
+        # Cálculo do F1 Score
+    if precision + recall > 0:
+        f1_score = 2 * (precision * recall) / (precision + recall)
+    else:
+        f1_score = 0
+
+    print("Ganhou: ", vitorias)
+    print("Morte: ", mortes)
+    print("Travou: ", travou)
+
+    # Exibe as métricas de precisão e revocação
+    print(f"Precisão (Precision): {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
+    print(f"F1 Score: {f1_score:.2f}")
+    print("----------")
+
+    media_passos = sum(passos_total) / len(passos_total)
+
+    print("A media de Passos: ", media_passos)
+    
