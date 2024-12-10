@@ -544,7 +544,7 @@ if update == False:
         precision = 0
 
     if vitórias_corretas + falsos_negativos > 0:
-        recall = vitórias_corretas / (vitórias_corretas + falsos_negativos)
+        recall = vitorias / (vitorias + mortes + travou)
     else:
         recall = 0
 
