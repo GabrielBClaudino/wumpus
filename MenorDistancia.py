@@ -526,10 +526,10 @@ if update == False:
 
     # Verdadeiras positivas (vitórias corretas), Falsos negativos (mortos ou travados)
     vitórias_corretas = vitorias
-    falsos_negativos = mortes + travou  # Se o jogo travou ou morreu, consideramos que não houve vitória
+    falsos_negativos = mortes   # Se o jogo travou ou morreu, consideramos que não houve vitória
 
     # Falsos positivos - situações em que o jogo terminou, mas não houve vitória (se precisar considerar)
-    falsos_positivos = 0  # Não temos a definição de falsos positivos diretamente, então deixamos como 0.
+    falsos_positivos = travou  # Não temos a definição de falsos positivos diretamente, então deixamos como 0.
 
     # Cálculo de precisão (Precision) e revocação (Recall)
     if vitórias_corretas + falsos_positivos > 0:
