@@ -1,4 +1,4 @@
-#Projeto Wumpus
+# Projeto Wumpus
 Este projeto foi desenvolvido como parte das aulas de Algoritmos em Python, com o objetivo de estudar, testar e comparar diferentes estratégias de navegação em uma matriz 8x8 simulando o famoso jogo do Wumpus, onde nos criamos também o jogo e todos os elementos dele: monstros, pedras, baús(Três baús: Vazio, Armadilha onde ele morre e por fim o verdadeiro que vence o jogo), e mapa do tesouro (Chave onde tem a localização do baú certo).
 
 Objetivo
