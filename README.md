@@ -1,8 +1,8 @@
 # Projeto Wumpus
-Este projeto foi desenvolvido como parte das aulas de Algoritmos em Python, com o objetivo de estudar, testar e comparar diferentes estratégias de navegação em uma matriz 8x8 simulando o famoso jogo do Wumpus, onde nos criamos também o jogo e todos os elementos dele: monstros, pedras, baús(Três baús: Vazio, Armadilha onde ele morre e por fim o verdadeiro que vence o jogo), e mapa do tesouro (Chave onde tem a localização do baú certo).
+Este projeto foi desenvolvido como parte das aulas de Algoritmos em Python, com o objetivo de estudar, testar e comparar diferentes estratégias de navegação em uma matriz 8x8 simulando o famoso jogo do Wumpus, onde nos criamos também o jogo e todos os elementos dele: monstros, pedras, baús(Três baús: Vazio, Armadilha onde ele morre e por fim o verdadeiro que vence o jogo), e mapa do tesouro (Onde tem a localização do baú certo).
 
 Objetivo
-O jogador (algoritmo) precisa encontrar uma chave e levá-la até um baú, evitando ao máximo cair em armadilhas como o monstro Wumpus. O projeto consistiu na implementação de quatro algoritmos diferentes para resolver este problema, cada um com uma abordagem única.
+O jogador (algoritmo) precisa encontrar uma mapa que vai ter as coordenadas até o baú verdadeiro, evitando ao máximo cair em armadilhas como o monstro Wumpus. O projeto consistiu na implementação de quatro algoritmos diferentes para resolver este problema, cada um com uma abordagem única.
 
 Algoritmos Implementados
 ## 1. Algoritmo Aleatório
@@ -22,13 +22,13 @@ Vantagens: Menos mortes comparado ao aleatório.
 Desvantagens: Pode ignorar o caminho mais curto ou eficiente.
 
 ## 3. Algoritmo de Menor Distância
-Descrição: Procura sempre a menor distância até a chave, e depois até o baú.
+Descrição: Procura sempre a menor distância até o mapa, e depois até o baú.
 
-Estratégia: Utiliza heurísticas simples (como distância Manhattan ou BFS).
+Estratégia: Ele olha menor caminho até o mapa e o segue, depois até o baú que está dizendo no mapa.
 
 Vantagens: Mais eficiente em termos de tempo e movimentos.
 
-Desvantagens: Pode não considerar armadilhas ou perigos ao redor.
+Desvantagens: Pode não considerar monstros ao redor.
 
 ## 4. Algoritmo com Árvore de Decisão (Melhor Algoritmo)
 Descrição: Este foi o algoritmo mais completo e eficaz desenvolvido no projeto.
@@ -37,7 +37,7 @@ Estratégia:
 
 Analisa toda a matriz 8x8 como um grafo.
 
-Mapeia completamente o ambiente e calcula o caminho ideal considerando todos os fatores (chave, baú, monstros).
+Mapeia completamente o ambiente e calcula o caminho ideal considerando todos os fatores (mapa, pedra, baú, monstros).
 
 Garante quase 100% de sucesso nas execuções.
 
